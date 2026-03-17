@@ -1,0 +1,95 @@
+{{template "base.html" .}}
+{{define "title"}}{{.Title}}{{end}}
+{{define "content"}}
+<div class="task-detail-section">
+    <div class="task-info card">
+        <h3>Task #{{.Task.ID}}</h3>
+        <dl class="task-details">
+            <dt>Description</dt>
+            <dd>{{.Task.Description}}</dd>
+            <dt>Status</dt>
+            <dd><span class="status-badge status-{{.Task.Status}}">{{.Task.Status}}</span></dd>
+            <dt>Workspace Branch</dt>
+            <dd><code>{{.Task.WorkspaceBranch}}</code></dd>
+            <dt>Test Command</dt>
+            <dd>
+                {{if .Task.TestCommand.Valid}}
+                    <code class="test-command">{{.Task.TestCommand.String}}</code>
+                {{else}}
+                    <em class="text-muted">none</em>
+                {{end}}
+            </dd>
+            <dt>Created</dt>
+            <dd>{{.Task.CreatedAt.Format "2006-01-02 15:04:05"}}</dd>
+            <dt>Completed</dt>
+            <dd>
+                {{if .Task.CompletedAt.Valid}}
+                    {{.Task.CompletedAt.Time.Format "2006-01-02 15:04:05"}}
+                {{else}}
+                    <em class="text-muted">—</em>
+                {{end}}
+            </dd>
+            <dt>Parent Task</dt>
+            <dd>
+                {{if .Task.ParentTaskID.Valid}}
+                    <a href="/tasks/{{.Task.ParentTaskID.Int64}}">Task #{{.Task.ParentTaskID.Int64}}</a>
+                {{else}}
+                    <em class="text-muted">None (root task)</em>
+                {{end}}
+            </dd>
+        </dl>
+    </div>
+
+    <h3>Test Traces ({{len .Traces}})</h3>
+    {{if .Traces}}
+    <table class="table traces-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Exit Code</th>
+                <th>Duration</th>
+                <th>Output</th>
+                <th>Run At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Traces}}
+            <tr class="trace-row {{if .ExitCode}}{{if eq .ExitCode 0}}trace-success{{else}}trace-failed{{end}}{{end}}">
+                <td>#{{.ID}}</td>
+                <td>
+                    {{if .ExitCode}}
+                        <span class="exit-code {{if eq .ExitCode 0}}success{{else}}failed{{end}}">{{.ExitCode}}</span>
+                    {{else}}
+                        <em class="text-muted">—</em>
+                    {{end}}
+                </td>
+                <td>
+                    {{if .DurationMs}}
+                        {{.DurationMs}} ms
+                    {{else}}
+                        <em class="text-muted">—</em>
+                    {{end}}
+                </td>
+                <td>
+                    {{if .Output}}
+                        <details>
+                            <summary>View output ({{len .Output}} bytes)</summary>
+                            <pre class="trace-output">{{.Output}}</pre>
+                        </details>
+                    {{else}}
+                        <em class="text-muted">none</em>
+                    {{end}}
+                </td>
+                <td>{{.RunAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+        <p>No traces yet for this task.</p>
+        <p>Traces are recorded when tasks with test commands are marked as done via <code>agit task done</code> or MCP <code>task_done</code> tool.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

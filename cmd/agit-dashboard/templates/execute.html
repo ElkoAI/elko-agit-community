@@ -1,0 +1,256 @@
+{{template "base.html" .}}
+{{define "title"}}Execute agit Commands{{end}}
+{{define "content"}}
+<div class="execute-section">
+    <h3>Execute agit Commands</h3>
+    <p class="execute-intro">
+        Select a tool from the list, fill in the parameters, and execute. The command will be run via CLI or MCP.
+    </p>
+
+    <div class="execute-container">
+        <div class="tool-selector">
+            <label for="tool-select">Select Tool:</label>
+            <select id="tool-select" class="tool-select">
+                <option value="">-- Choose a tool --</option>
+                <!-- Filled by JavaScript -->
+            </select>
+            <div id="tool-description" class="tool-description"></div>
+        </div>
+
+        <form id="execute-form" class="execute-form">
+            <div id="parameters-container" class="parameters-container">
+                <!-- Dynamic fields will appear here -->
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="execute-button">Execute</button>
+                <button type="button" id="reset-form" class="reset-button">Reset</button>
+            </div>
+        </form>
+
+        <div class="results-section">
+            <h4>Results</h4>
+            <div id="results-output" class="results-output">
+                <p class="placeholder">Results will appear here after execution.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toolSelect = document.getElementById('tool-select');
+    const toolDescription = document.getElementById('tool-description');
+    const parametersContainer = document.getElementById('parameters-container');
+    const executeForm = document.getElementById('execute-form');
+    const resultsOutput = document.getElementById('results-output');
+    const resetButton = document.getElementById('reset-form');
+
+    let schema = null;
+    let currentTool = null;
+
+    // Fetch schema from API
+    fetch('/api/schema')
+        .then(response => response.json())
+        .then(data => {
+            schema = data;
+            populateToolSelect(data.tools);
+        })
+        .catch(err => {
+            resultsOutput.innerHTML = `<div class="error">Failed to load API schema: ${err.message}</div>`;
+        });
+
+    function populateToolSelect(tools) {
+        tools.forEach(tool => {
+            const option = document.createElement('option');
+            option.value = tool.name;
+            option.textContent = tool.name + (tool.description ? ' - ' + tool.description : '');
+            toolSelect.appendChild(option);
+        });
+    }
+
+    toolSelect.addEventListener('change', function() {
+        const toolName = this.value;
+        if (!toolName) {
+            currentTool = null;
+            toolDescription.textContent = '';
+            parametersContainer.innerHTML = '';
+            return;
+        }
+        
+        currentTool = schema.tools.find(t => t.name === toolName);
+        if (!currentTool) return;
+        
+        toolDescription.textContent = currentTool.description || '';
+        renderParameters(currentTool.parameters || []);
+    });
+
+    function renderParameters(parameters) {
+        parametersContainer.innerHTML = '';
+        
+        if (parameters.length === 0) {
+            parametersContainer.innerHTML = '<p class="no-params">This tool has no parameters.</p>';
+            return;
+        }
+        
+        parameters.forEach(param => {
+            const paramDiv = document.createElement('div');
+            paramDiv.className = 'form-field';
+            
+            const label = document.createElement('label');
+            label.htmlFor = `param-${param.name}`;
+            label.textContent = param.ui_label || param.name;
+            if (param.required) {
+                label.innerHTML += ' <span class="required">*</span>';
+            }
+            
+            let input;
+            if (param.enum && param.enum.length > 0) {
+                // Enum dropdown
+                input = document.createElement('select');
+                input.id = `param-${param.name}`;
+                input.name = param.name;
+                input.className = 'form-input';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '-- Select --';
+                input.appendChild(defaultOption);
+                param.enum.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    input.appendChild(option);
+                });
+            } else if (param.type === 'boolean') {
+                // Checkbox
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `param-${param.name}`;
+                input.name = param.name;
+                input.className = 'form-checkbox';
+            } else if (param.type === 'integer') {
+                // Number input
+                input = document.createElement('input');
+                input.type = 'number';
+                input.id = `param-${param.name}`;
+                input.name = param.name;
+                input.className = 'form-input';
+                input.step = '1';
+            } else if (param.type === 'array') {
+                // Textarea for JSON array
+                input = document.createElement('textarea');
+                input.id = `param-${param.name}`;
+                input.name = param.name;
+                input.className = 'form-textarea';
+                input.placeholder = 'Enter JSON array, e.g., ["item1", "item2"]';
+            } else {
+                // Default text input
+                input = document.createElement('input');
+                input.type = 'text';
+                input.id = `param-${param.name}`;
+                input.name = param.name;
+                input.className = 'form-input';
+                input.placeholder = param.ui_hint || '';
+            }
+            
+            if (param.default_value) {
+                input.value = param.default_value;
+            }
+            
+            const hint = document.createElement('div');
+            hint.className = 'form-hint';
+            hint.textContent = param.ui_hint || '';
+            
+            paramDiv.appendChild(label);
+            paramDiv.appendChild(input);
+            if (param.ui_hint) {
+                paramDiv.appendChild(hint);
+            }
+            parametersContainer.appendChild(paramDiv);
+        });
+    }
+
+    executeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentTool) {
+            alert('Please select a tool first');
+            return;
+        }
+        
+        const formData = new FormData(executeForm);
+        const params = {};
+        for (let [key, value] of formData.entries()) {
+            params[key] = value;
+        }
+        
+        // Validate required parameters
+        const missing = currentTool.parameters.filter(p => p.required && !params[p.name]);
+        if (missing.length > 0) {
+            alert('Missing required parameters: ' + missing.map(p => p.name).join(', '));
+            return;
+        }
+        
+        // Convert types
+        currentTool.parameters.forEach(param => {
+            if (params[param.name] === undefined) return;
+            if (param.type === 'integer') {
+                params[param.name] = parseInt(params[param.name], 10);
+            } else if (param.type === 'boolean') {
+                params[param.name] = params[param.name] === 'on';
+            } else if (param.type === 'array') {
+                try {
+                    params[param.name] = JSON.parse(params[param.name]);
+                } catch (err) {
+                    alert(`Invalid JSON for ${param.name}: ${err.message}`);
+                    throw err;
+                }
+            }
+        });
+        
+        // Send execution request
+        resultsOutput.innerHTML = '<div class="loading">Executing...</div>';
+        
+        fetch('/api/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool: currentTool.name,
+                parameters: params
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayResults(data);
+        })
+        .catch(err => {
+            resultsOutput.innerHTML = `<div class="error">Execution failed: ${err.message}</div>`;
+        });
+    });
+    
+    resetButton.addEventListener('click', function() {
+        executeForm.reset();
+        parametersContainer.innerHTML = '';
+        resultsOutput.innerHTML = '<p class="placeholder">Results will appear here after execution.</p>';
+        currentTool = null;
+        toolSelect.value = '';
+        toolDescription.textContent = '';
+    });
+    
+    function displayResults(data) {
+        let html = `<div class="result-success">${data.success || 'Command executed successfully'}</div>`;
+        if (data.output) {
+            html += `<pre class="result-output">${escapeHtml(JSON.stringify(data.output, null, 2))}</pre>`;
+        }
+        if (data.error) {
+            html += `<div class="result-error">Error: ${escapeHtml(data.error)}</div>`;
+        }
+        resultsOutput.innerHTML = html;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+});
+</script>
+{{end}}

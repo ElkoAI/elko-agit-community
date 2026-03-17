@@ -1,0 +1,76 @@
+{{template "base.html" .}}
+{{define "title"}}Test Traces{{end}}
+{{define "content"}}
+<div class="traces-section">
+    <h3>Test Traces ({{len .Traces}})</h3>
+    
+    <!-- Filter form -->
+    <div class="filter-section">
+        <form method="GET" action="/traces" class="filter-form">
+            <div class="filter-controls">
+                <input type="text" 
+                       name="q" 
+                       placeholder="Search task description..." 
+                       value="{{.Search}}"
+                       class="filter-input">
+                <select name="exit" class="filter-select">
+                    <option value="">All results</option>
+                    <option value="success" {{if eq .ExitFilter "success"}}selected{{end}}>Success (exit 0)</option>
+                    <option value="failure" {{if eq .ExitFilter "failure"}}selected{{end}}>Failure (exit ≠ 0)</option>
+                </select>
+                <button type="submit" class="filter-button">Filter</button>
+                {{if or .ExitFilter .Search}}
+                <a href="/traces" class="clear-filters">Clear filters</a>
+                {{end}}
+            </div>
+        </form>
+        {{if or .ExitFilter .Search}}
+        <div class="active-filters">
+            {{if .ExitFilter}}<span class="filter-tag">Result: {{.ExitFilter}}</span>{{end}}
+            {{if .Search}}<span class="filter-tag">Search: "{{.Search}}"</span>{{end}}
+        </div>
+        {{end}}
+    </div>
+
+    {{if .Traces}}
+    <table class="table traces-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Task ID</th>
+                <th>Exit Code</th>
+                <th>Duration</th>
+                <th>Run At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Traces}}
+            <tr class="trace-row {{if .ExitCode}}{{if eq .ExitCode 0}}trace-success{{else}}trace-failed{{end}}{{end}}">
+                <td>#{{.ID}}</td>
+                <td><a href="/tasks/{{.TaskID}}">Task #{{.TaskID}}</a></td>
+                <td>
+                    {{if .ExitCode}}
+                        <span class="exit-code {{if eq .ExitCode 0}}success{{else}}failed{{end}}">{{.ExitCode}}</span>
+                    {{else}}
+                        <em class="text-muted">—</em>
+                    {{end}}
+                </td>
+                <td>
+                    {{if .DurationMs}}
+                        {{.DurationMs}} ms
+                    {{else}}
+                        <em class="text-muted">—</em>
+                    {{end}}
+                </td>
+                <td>{{.RunAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+        <p>No traces found{{if or .ExitFilter .Search}} matching filters{{end}}. {{if or .ExitFilter .Search}}<a href="/traces">Clear filters</a>{{else}}Traces are recorded when tasks with test commands are marked as done via <code>agit task done</code> or MCP <code>task_done</code> tool.{{end}}</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

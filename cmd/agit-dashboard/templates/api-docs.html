@@ -1,0 +1,71 @@
+{{template "base.html" .}}
+{{define "title"}}agit API Documentation{{end}}
+{{define "content"}}
+<div class="api-docs-section">
+    <h3>agit API Documentation</h3>
+    <p class="api-intro">
+        This page documents all agit CLI commands and MCP tools. Each tool can be executed via the CLI, MCP, or the dynamic form below.
+        The schema version is <code>{{.Schema.Version}}</code>.
+    </p>
+
+    <div class="tool-list">
+        {{range .Schema.Tools}}
+        <div class="tool-card" id="tool-{{.Name}}">
+            <h4>
+                <span class="tool-name">{{.Name}}</span>
+                {{if .MCPTool}}<span class="tool-tag mcp-tag">MCP</span>{{end}}
+                {{if .CLICommand}}<span class="tool-tag cli-tag">CLI</span>{{end}}
+            </h4>
+            <p class="tool-description">{{.Description}}</p>
+            
+            {{if .CLICommand}}
+            <div class="cli-example">
+                <strong>CLI command:</strong>
+                <code class="cli-command">{{.CLICommand}}</code>
+            </div>
+            {{end}}
+            
+            {{if .Parameters}}
+            <div class="parameters-section">
+                <h5>Parameters</h5>
+                <table class="parameters-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>CLI Flag</th>
+                            <th>Position</th>
+                            <th>UI Label</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Parameters}}
+                        <tr>
+                            <td><code>{{.Name}}</code></td>
+                            <td><span class="type-badge type-{{.Type}}">{{.Type}}</span></td>
+                            <td>{{if .Required}}✅{{else}}❌{{end}}</td>
+                            <td>{{if .CLIFlag}}<code>{{.CLIFlag}}</code>{{else}}<em>—</em>{{end}}</td>
+                            <td>{{if .Positional}}{{.Positional}}{{else}}<em>—</em>{{end}}</td>
+                            <td>{{if .UILabel}}{{.UILabel}}{{else}}<em>—</em>{{end}}</td>
+                            <td>{{if .UIHint}}{{.UIHint}}{{else}}<em>—</em>{{end}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <p class="no-parameters">No parameters.</p>
+            {{end}}
+
+            {{if .Output.SuccessMessage}}
+            <div class="output-section">
+                <strong>Success message:</strong> <code>{{.Output.SuccessMessage}}</code>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

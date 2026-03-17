@@ -1,0 +1,222 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "workspace_status",
+      "description": "Get current workspace state (branch, current task, agent state, todo list, last commit).",
+      "cli_command": "agit workspace-status",
+      "mcp_tool": "workspace_status",
+      "parameters": [],
+      "output": {
+        "format": "json",
+        "success_message": "Workspace status retrieved"
+      }
+    },
+    {
+      "name": "task_new",
+      "description": "Create a new task in the current workspace.",
+      "cli_command": "agit task new --test '{test_command}' '{description}'",
+      "mcp_tool": "task_new",
+      "parameters": [
+        {
+          "name": "description",
+          "type": "string",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Task Description",
+          "ui_hint": "Brief description of the task"
+        },
+        {
+          "name": "test_command",
+          "type": "string",
+          "required": false,
+          "cli_flag": "--test",
+          "ui_label": "Test Command",
+          "ui_hint": "Shell command to run when task is done"
+        },
+        {
+          "name": "parent_task_id",
+          "type": "integer",
+          "required": false,
+          "cli_flag": "--parent",
+          "ui_label": "Parent Task ID",
+          "ui_hint": "Optional parent task for subtasks"
+        }
+      ],
+      "output": {
+        "format": "json",
+        "success_message": "Task created with ID: {id}"
+      }
+    },
+    {
+      "name": "task_list",
+      "description": "List tasks for the current workspace, optionally filtered by status.",
+      "cli_command": "agit task list --status '{status}'",
+      "mcp_tool": "task_list",
+      "parameters": [
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "cli_flag": "--status",
+          "ui_label": "Status Filter",
+          "ui_hint": "Filter by status: pending, active, done, failed",
+          "enum": ["pending", "active", "done", "failed"]
+        }
+      ],
+      "output": {
+        "format": "table",
+        "success_message": "Found {count} tasks"
+      }
+    },
+    {
+      "name": "task_start",
+      "description": "Mark a task as active and set it as the workspace's current task.",
+      "cli_command": "agit task start {task_id}",
+      "mcp_tool": "task_start",
+      "parameters": [
+        {
+          "name": "task_id",
+          "type": "integer",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Task ID",
+          "ui_hint": "ID of the task to start"
+        }
+      ],
+      "output": {
+        "format": "json",
+        "success_message": "Task {task_id} is now active"
+      }
+    },
+    {
+      "name": "task_done",
+      "description": "Mark a task as done, clear workspace current task, and run test command.",
+      "cli_command": "agit task done {task_id}",
+      "mcp_tool": "task_done",
+      "parameters": [
+        {
+          "name": "task_id",
+          "type": "integer",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Task ID",
+          "ui_hint": "ID of the task to complete"
+        }
+      ],
+      "output": {
+        "format": "json",
+        "success_message": "Task {task_id} marked as done"
+      }
+    },
+    {
+      "name": "checkpoint",
+      "description": "Save state + git commit (creates a checkpoint with workspace snapshot).",
+      "cli_command": "agit checkpoint '{message}'",
+      "mcp_tool": "checkpoint",
+      "parameters": [
+        {
+          "name": "message",
+          "type": "string",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Checkpoint Message",
+          "ui_hint": "Description of this checkpoint"
+        }
+      ],
+      "output": {
+        "format": "json",
+        "success_message": "Checkpoint created with commit {commit_hash}"
+      }
+    },
+    {
+      "name": "restore",
+      "description": "Restore to last checkpoint (git reset + workspace state restore).",
+      "cli_command": "agit restore",
+      "mcp_tool": "restore",
+      "parameters": [],
+      "output": {
+        "format": "json",
+        "success_message": "Restored to last checkpoint"
+      }
+    },
+    {
+      "name": "trace",
+      "description": "Show test run history for a task.",
+      "cli_command": "agit trace {task_id}",
+      "mcp_tool": "trace",
+      "parameters": [
+        {
+          "name": "task_id",
+          "type": "integer",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Task ID",
+          "ui_hint": "ID of the task to show traces for"
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "cli_flag": "--limit",
+          "ui_label": "Limit",
+          "ui_hint": "Maximum number of traces to show"
+        }
+      ],
+      "output": {
+        "format": "table",
+        "success_message": "Showing {count} traces"
+      }
+    },
+    {
+      "name": "task_breakdown",
+      "description": "Create subtasks under a parent task.",
+      "cli_command": "agit task breakdown {parent_task_id} --subtasks 'JSON'",
+      "mcp_tool": "task_breakdown",
+      "parameters": [
+        {
+          "name": "parent_task_id",
+          "type": "integer",
+          "required": true,
+          "positional": 1,
+          "ui_label": "Parent Task ID",
+          "ui_hint": "ID of the parent task"
+        },
+        {
+          "name": "subtasks",
+          "type": "array",
+          "required": true,
+          "cli_flag": "--subtasks",
+          "ui_label": "Subtasks",
+          "ui_hint": "JSON array of subtask objects"
+        }
+      ],
+      "output": {
+        "format": "json",
+        "success_message": "Created {count} subtasks"
+      }
+    },
+    {
+      "name": "task_tree",
+      "description": "Return hierarchical tree of tasks for the current workspace.",
+      "cli_command": "agit task tree",
+      "mcp_tool": "task_tree",
+      "parameters": [],
+      "output": {
+        "format": "json",
+        "success_message": "Task tree generated"
+      }
+    },
+    {
+      "name": "manifest",
+      "description": "Load and apply agit manifest from default location (.agit-manifest.json).",
+      "cli_command": "agit manifest load",
+      "mcp_tool": "manifest",
+      "parameters": [],
+      "output": {
+        "format": "json",
+        "success_message": "Manifest loaded and tasks created successfully"
+      }
+    }
+  ]
+}

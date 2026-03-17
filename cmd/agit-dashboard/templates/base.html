@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{block "title" .}}agit dashboard{{end}}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/" class="logo">agit</a> dashboard</h1>
+            <nav class="main-nav">
+                <a href="/workspace" {{if eq .Active "workspace"}}class="active"{{end}}>Workspace</a>
+                <a href="/tasks" {{if eq .Active "tasks"}}class="active"{{end}}>Tasks</a>
+                <a href="/checkpoints" {{if eq .Active "checkpoints"}}class="active"{{end}}>Checkpoints</a>
+                <a href="/traces" {{if eq .Active "traces"}}class="active"{{end}}>Traces</a>
+                <a href="/api-docs" {{if eq .Active "api-docs"}}class="active"{{end}}>API Docs</a>
+                <a href="/execute" {{if eq .Active "execute"}}class="active"{{end}}>Execute</a>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {{if .Title}}<h2>{{.Title}}</h2>{{end}}
+        {{block "content" .}}{{end}}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>agit dashboard v0.1.0 • <a href="https://github.com/jsoprych/agit-opencode" target="_blank">GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

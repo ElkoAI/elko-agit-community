@@ -1,0 +1,78 @@
+[
+  {
+    "name": "agit_workspace_status",
+    "description": "Get current workspace state",
+    "command": "agit workspace-status"
+  },
+  {
+    "name": "agit_task_new",
+    "description": "Create a new task with optional test command",
+    "command": "agit task new --test '{test_command}' '{description}'",
+    "parameters": [
+      {
+        "name": "description",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "test_command",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "agit_task_list",
+    "description": "List tasks (optionally filtered by status)",
+    "command": "agit task list --status '{status}'",
+    "parameters": [
+      {
+        "name": "status",
+        "required": false,
+        "type": "string",
+        "enum": ["pending", "active", "done", "failed"]
+      }
+    ]
+  },
+  {
+    "name": "agit_task_start",
+    "description": "Mark a task as active",
+    "command": "agit task start {task_id}",
+    "parameters": [
+      {
+        "name": "task_id",
+        "required": true,
+        "type": "integer"
+      }
+    ]
+  },
+  {
+    "name": "agit_task_done",
+    "description": "Complete task and run its test command",
+    "command": "agit task done {task_id}",
+    "parameters": [
+      {
+        "name": "task_id",
+        "required": true,
+        "type": "integer"
+      }
+    ]
+  },
+  {
+    "name": "agit_checkpoint",
+    "description": "Create checkpoint (git commit + agent state snapshot)",
+    "command": "agit checkpoint '{message}'",
+    "parameters": [
+      {
+        "name": "message",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "agit_restore",
+    "description": "Restore to last checkpoint",
+    "command": "agit restore"
+  }
+]

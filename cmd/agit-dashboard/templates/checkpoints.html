@@ -1,0 +1,56 @@
+{{template "base.html" .}}
+{{define "title"}}Checkpoints{{end}}
+{{define "content"}}
+<div class="checkpoints-section">
+    <h3>Checkpoints ({{len .Checkpoints}})</h3>
+    
+    <!-- Filter form -->
+    <div class="filter-section">
+        <form method="GET" action="/checkpoints" class="filter-form">
+            <div class="filter-controls">
+                <input type="text" 
+                       name="q" 
+                       placeholder="Search message..." 
+                       value="{{.Search}}"
+                       class="filter-input">
+                <button type="submit" class="filter-button">Search</button>
+                {{if .Search}}
+                <a href="/checkpoints" class="clear-filters">Clear search</a>
+                {{end}}
+            </div>
+        </form>
+        {{if .Search}}
+        <div class="active-filters">
+            <span class="filter-tag">Search: "{{.Search}}"</span>
+        </div>
+        {{end}}
+    </div>
+
+    {{if .Checkpoints}}
+    <table class="table checkpoints-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Commit</th>
+                <th>Message</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Checkpoints}}
+            <tr class="checkpoint-row">
+                <td>#{{.ID}}</td>
+                <td><code class="commit-hash">{{.CommitHash}}</code></td>
+                <td>{{.Message}}</td>
+                <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+        <p>No checkpoints found{{if .Search}} matching "{{.Search}}"{{end}}. {{if .Search}}<a href="/checkpoints">Clear search</a>{{else}}Checkpoints are Git commits + agent state snapshots created via <code>agit checkpoint</code> or MCP <code>checkpoint</code> tool.{{end}}</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "name": "elko-agit",
+  "description": "Go project managed by agit",
+  "tasks": [
+    {
+      "id": 1,
+      "description": "Initialize agit and verify setup",
+      "test": "go test ./...",
+      "dependencies": []
+    },
+    {
+      "id": 2,
+      "description": "Run project tests to ensure everything works",
+      "test": "go test ./...",
+      "dependencies": [
+        1
+      ]
+    }
+  ],
+  "agents": {
+    "preferred": "claude-code",
+    "integrations": [
+      "opencode",
+      "cursor"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+# Binaries (root-level only)
+/agit-mcp
+/agit-hook
+/agit
+/agit-dashboard
+
+# Development files
+*.db
+*.sqlite
+*.backup
+/tmp/
+/coverage.out
+coverage.html
+*.out
+
+# Editor files
+.vscode/
+.idea/
+
+# Go specific
+/bin/
+/vendor/
+*.test
+*.prof
+
+# OS files
+.DS_Store
+Thumbs.db

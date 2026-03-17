@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "agit": {
+      "args": [
+        "--stdio"
+      ],
+      "command": "agit-mcp"
+    }
+  }
+}

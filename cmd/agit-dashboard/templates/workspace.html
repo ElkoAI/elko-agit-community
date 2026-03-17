@@ -1,0 +1,63 @@
+{{template "base.html" .}}
+{{define "title"}}Workspace Overview{{end}}
+{{define "content"}}
+<div class="workspace-section">
+    <div class="workspace-info card">
+        <h3>Current Workspace</h3>
+        <dl class="workspace-details">
+            <dt>Branch</dt>
+            <dd><code>{{.Workspace.Branch}}</code></dd>
+            <dt>Last Commit</dt>
+            <dd><code class="commit-hash">{{.Workspace.LastCommit}}</code></dd>
+            <dt>Current Task</dt>
+            <dd>
+                {{if .Workspace.CurrentTaskID.Valid}}
+                    <a href="/tasks/{{.Workspace.CurrentTaskID.Int64}}">Task #{{.Workspace.CurrentTaskID.Int64}}</a>
+                {{else}}
+                    <em class="text-muted">None</em>
+                {{end}}
+            </dd>
+            <dt>Created</dt>
+            <dd>{{.Workspace.CreatedAt.Format "2006-01-02 15:04:05"}}</dd>
+            <dt>Updated</dt>
+            <dd>{{.Workspace.UpdatedAt.Format "2006-01-02 15:04:05"}}</dd>
+        </dl>
+    </div>
+
+    <h3>Tasks ({{len .Tasks}})</h3>
+    {{if .Tasks}}
+    <table class="table tasks-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Test Command</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Tasks}}
+            <tr class="task-row status-{{.Status}}">
+                <td><a href="/tasks/{{.ID}}">#{{.ID}}</a></td>
+                <td>{{.Description}}</td>
+                <td><span class="status-badge status-{{.Status}}">{{.Status}}</span></td>
+                <td>
+                    {{if .TestCommand.Valid}}
+                        <code class="test-command">{{.TestCommand.String}}</code>
+                    {{else}}
+                        <em class="text-muted">none</em>
+                    {{end}}
+                </td>
+                <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+        <p>No tasks yet. Create one via MCP or CLI.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

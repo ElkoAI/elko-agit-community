@@ -1,0 +1,80 @@
+{{template "base.html" .}}
+{{define "title"}}All Tasks{{end}}
+{{define "content"}}
+<div class="tasks-section">
+    <h3>All Tasks ({{len .Tasks}})</h3>
+    
+    <!-- Filter form -->
+    <div class="filter-section">
+        <form method="GET" action="/tasks" class="filter-form">
+            <div class="filter-controls">
+                <input type="text" 
+                       name="q" 
+                       placeholder="Search description..." 
+                       value="{{.Search}}"
+                       class="filter-input">
+                <select name="status" class="filter-select">
+                    <option value="">All statuses</option>
+                    <option value="pending" {{if eq .StatusFilter "pending"}}selected{{end}}>Pending</option>
+                    <option value="active" {{if eq .StatusFilter "active"}}selected{{end}}>Active</option>
+                    <option value="done" {{if eq .StatusFilter "done"}}selected{{end}}>Done</option>
+                    <option value="failed" {{if eq .StatusFilter "failed"}}selected{{end}}>Failed</option>
+                </select>
+                <button type="submit" class="filter-button">Filter</button>
+                {{if or .StatusFilter .Search}}
+                <a href="/tasks" class="clear-filters">Clear filters</a>
+                {{end}}
+            </div>
+        </form>
+        {{if or .StatusFilter .Search}}
+        <div class="active-filters">
+            {{if .StatusFilter}}<span class="filter-tag">Status: {{.StatusFilter}}</span>{{end}}
+            {{if .Search}}<span class="filter-tag">Search: "{{.Search}}"</span>{{end}}
+        </div>
+        {{end}}
+    </div>
+
+    {{if .Tasks}}
+    <table class="table tasks-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Test Command</th>
+                <th>Created</th>
+                <th>Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Tasks}}
+            <tr class="task-row status-{{.Status}}">
+                <td><a href="/tasks/{{.ID}}">#{{.ID}}</a></td>
+                <td>{{.Description}}</td>
+                <td><span class="status-badge status-{{.Status}}">{{.Status}}</span></td>
+                <td>
+                    {{if .TestCommand.Valid}}
+                        <code class="test-command">{{.TestCommand.String}}</code>
+                    {{else}}
+                        <em class="text-muted">none</em>
+                    {{end}}
+                </td>
+                <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td>
+                    {{if .CompletedAt.Valid}}
+                        {{.CompletedAt.Time.Format "2006-01-02 15:04:05"}}
+                    {{else}}
+                        <em class="text-muted">—</em>
+                    {{end}}
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+        <p>No tasks found{{if or .StatusFilter .Search}} matching filters{{end}}. {{if or .StatusFilter .Search}}<a href="/tasks">Clear filters</a>{{else}}Create one via MCP or CLI.{{end}}</p>
+    </div>
+    {{end}}
+</div>
+{{end}}
